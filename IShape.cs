@@ -1,5 +1,8 @@
-public interface IShape
+namespace LabWork.Geometry
 {
-    void PrintVertices();
-    double Area();
+    public interface IShape
+    {
+        void PrintVertices();
+        double Area();
+    }
 }
