@@ -1,33 +1,34 @@
 ﻿using System;
 using System.Globalization;
 
+// ...existing code... (GeometricEquation, Line, Hyperplane have been simplified to avoid console logging in ctors/finalizers)
+
 abstract class GeometricEquation : IDisposable
 {
 	// coeffs: [a0, a1, a2, ... aN]
-	protected double[] coeffs;
-	protected bool disposed = false;
-	protected string name;
+	protected double[] _coeffs;
+	protected bool _disposed = false;
+	protected string Name { get; }
 
 	protected GeometricEquation(int dimension, string name)
 	{
 		// dimension = number of coordinates (e.g., 2 for line, 4 for hyperplane)
-		coeffs = new double[dimension + 1];
-		this.name = name;
-		Console.WriteLine($"Конструктор {name} викликано");
+		_coeffs = new double[dimension + 1];
+		Name = name;
 	}
 
 	public virtual void SetCoefficients(params double[] values)
 	{
-		if (values == null || values.Length != coeffs.Length)
-			throw new ArgumentException($"Потрібно передати {coeffs.Length} коефіцієнтів (a0..a{coeffs.Length - 1})");
-		for (int i = 0; i < coeffs.Length; i++) coeffs[i] = values[i];
+		if (values == null || values.Length != _coeffs.Length)
+			throw new ArgumentException($"Потрібно передати {_coeffs.Length} коефіцієнтів (a0..a{_coeffs.Length - 1})");
+		for (int i = 0; i < _coeffs.Length; i++) _coeffs[i] = values[i];
 	}
 
 	public virtual void PrintCoefficients()
 	{
-		Console.WriteLine($"Коефіцієнти для {name}:");
-		for (int i = 0; i < coeffs.Length; i++)
-			Console.WriteLine($"a{i} = {coeffs[i].ToString(CultureInfo.InvariantCulture)}");
+		Console.WriteLine($"Коефіцієнти для {Name}:");
+		for (int i = 0; i < _coeffs.Length; i++)
+			Console.WriteLine($"a{i} = {_coeffs[i].ToString(CultureInfo.InvariantCulture)}");
 	}
 
 	public abstract bool ContainsPoint(params double[] coords);
@@ -40,20 +41,14 @@ abstract class GeometricEquation : IDisposable
 
 	protected virtual void Dispose(bool disposing)
 	{
-		if (!disposed)
+		if (!_disposed)
 		{
 			if (disposing)
 			{
 				// free managed resources if any
 			}
-			Console.WriteLine($"Dispose (деструктор) {name} викликано");
-			disposed = true;
+			_disposed = true;
 		}
-	}
-
-	~GeometricEquation()
-	{
-		Dispose(false);
 	}
 }
 
@@ -71,7 +66,7 @@ class Line : GeometricEquation
 	{
 		if (coords == null || coords.Length != 2) throw new ArgumentException("Потрібні координати x і y");
 		double x = coords[0], y = coords[1];
-		double val = coeffs[1] * x + coeffs[2] * y + coeffs[0];
+		double val = _coeffs[1] * x + _coeffs[2] * y + _coeffs[0];
 		return Math.Abs(val) < 1e-6;
 	}
 
@@ -96,8 +91,8 @@ class Hyperplane : GeometricEquation
 	public override bool ContainsPoint(params double[] coords)
 	{
 		if (coords == null || coords.Length != 4) throw new ArgumentException("Потрібні 4 координати (x1..x4)");
-		double sum = coeffs[0];
-		for (int i = 0; i < 4; i++) sum += coeffs[i + 1] * coords[i];
+		double sum = _coeffs[0];
+		for (int i = 0; i < 4; i++) sum += _coeffs[i + 1] * coords[i];
 		return Math.Abs(sum) < 1e-6;
 	}
 
@@ -108,16 +103,17 @@ class Hyperplane : GeometricEquation
 	}
 }
 
-class Program
+static class Program
 {
-	static double[] ReadDoublesFromConsole(int count, string prompt)
+	// Reads a line with 'count' double values. Returns null if input ended (Ctrl+Z/Ctrl+D depending on system).
+	static double[]? ReadDoublesFromConsole(int count, string prompt)
 	{
 		Console.WriteLine(prompt);
 		while (true)
 		{
-			Console.Write($"> ");
+			Console.Write("> ");
 			string? line = Console.ReadLine();
-			if (line == null) return new double[count];
+			if (line == null) return null;
 			string[] parts = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
 			if (parts.Length != count)
 			{
@@ -138,29 +134,53 @@ class Program
 		}
 	}
 
+	static void PrintHeader()
+	{
+		Console.WriteLine("Виберіть фігуру:");
+		Console.WriteLine("1 - Triangle");
+		Console.WriteLine("2 - ConvexQuadrilateral");
+		Console.WriteLine("0 - Вихід");
+	}
+
 	static void Main()
 	{
-		// Створюємо об'єкти і демонструємо виклик конструктора та деструктора (Dispose)
-		using (var line = new Line(1.0, -2.0, 3.0)) // приклад коефіцієнтів
-		using (var hyper = new Hyperplane(1.0, 0.5, -1.0, 2.0, -0.5)) // a0..a4
+		while (true)
 		{
-			// Виведення коефіцієнтів
-			line.PrintCoefficients();
-			hyper.PrintCoefficients();
-
-			// Перевірка точки для прямої
-			var pt2 = ReadDoublesFromConsole(2, "Введіть координати точки для прямої (x y), розділені пробілом:");
-			bool onLine = line.ContainsPoint(pt2);
-			Console.WriteLine(onLine ? "Точка належить прямій." : "Точка не належить прямій.");
-
-			// Перевірка точки для гіперплощини
-			var pt4 = ReadDoublesFromConsole(4, "Введіть координати точки для гіперплощини (x1 x2 x3 x4), через пробіл:");
-			bool onHyper = hyper.ContainsPoint(pt4);
-			Console.WriteLine(onHyper ? "Точка належить гіперплощині." : "Точка не належить гіперплощині.");
+			PrintHeader();
+			Console.Write("> ");
+			string? opt = Console.ReadLine();
+			if (opt == null) break;
+			if (opt == "0") break;
+			try
+			{
+				if (opt == "1")
+				{
+					// Triangle: read three points
+					Point.ReadThreePointsFromConsole(out Point p1, out Point p2, out Point p3);
+					var tri = new Triangle(p1, p2, p3);
+					tri.PrintVertices();
+					double area = tri.Area();
+					Console.WriteLine($"Площа трикутника = {area.ToString(CultureInfo.InvariantCulture)}");
+				}
+				else if (opt == "2")
+				{
+					// Quadrilateral: read four points
+					Point[] pts = Point.ReadNPointsFromConsole(4);
+					var quad = new ConvexQuadrilateral(pts);
+					quad.PrintVertices();
+					double area = quad.Area();
+					Console.WriteLine($"Площа опуклого чотирикутника = {area.ToString(CultureInfo.InvariantCulture)}");
+				}
+				else
+				{
+					Console.WriteLine("Невідома опція, спробуйте ще раз.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Помилка: {ex.Message}");
+			}
+			Console.WriteLine();
 		}
-
-		// Затримка, щоб користувач побачив повідомлення в консолі
-		Console.WriteLine("Натисніть Enter для виходу...");
-		Console.ReadLine();
 	}
 }
