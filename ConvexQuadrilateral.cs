@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace LabWork.Geometry
 {
-    public class ConvexQuadrilateral : Shape
+    public class ConvexQuadrilateral : IShape
     {
         private readonly Point[] _pts = new Point[4];
 
@@ -25,13 +25,13 @@ namespace LabWork.Geometry
             EnsureOrderAndConvexity();
         }
 
-    public override void PrintVertices()
+    public void PrintVertices()
         {
             Console.WriteLine("Вершини опуклого чотирикутника (після впорядкування):");
             for (int i = 0; i < 4; i++) Console.WriteLine($"{i + 1}: {_pts[i]}");
         }
 
-    public override double Area()
+    public double Area()
         {
             // Shoelace for 4 points
             double sum = 0.0;

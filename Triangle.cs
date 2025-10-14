@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace LabWork.Geometry
 {
-    public class Triangle : Shape
+    public class Triangle : IShape
     {
         private readonly Point _p1;
         private readonly Point _p2;
@@ -16,7 +16,7 @@ namespace LabWork.Geometry
             if (Math.Abs(area) < 1e-12) throw new ArgumentException("Три точки лежать на одній прямій або площа занадто мала.");
         }
 
-    public override void PrintVertices()
+    public void PrintVertices()
         {
             Console.WriteLine("Вершини трикутника:");
             Console.WriteLine($"A: {_p1}");
@@ -25,7 +25,7 @@ namespace LabWork.Geometry
         }
 
         // Shoelace formula (determinant) for triangle
-    public override double Area()
+    public double Area()
         {
             double x1 = _p1.X, y1 = _p1.Y;
             double x2 = _p2.X, y2 = _p2.Y;

@@ -1,14 +1,11 @@
 namespace LabWork.Geometry
 {
-    /// <summary>
-    /// </summary>
-    public abstract class Shape
+    
+    public interface IShape
     {
-        /// <summary>
-        /// </summary>
-        public abstract double Area();
-        /// <summary>
-        /// </summary>
-        public abstract void PrintVertices();
+        
+        double Area();
+        
+        void PrintVertices();
     }
 }
