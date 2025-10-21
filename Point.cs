@@ -23,27 +23,10 @@ namespace LabWork.Geometry
             Point[] res = new Point[n];
             for (int i = 0; i < n; i++)
             {
-                while (true)
-                {
-                    Console.WriteLine($"Ввести координати точки #{i + 1} у форматі: x y");
-                    Console.Write("> ");
-                    string? line = Console.ReadLine();
-                    if (line == null) throw new InvalidOperationException("Введено завершено користувачем");
-                    string[] parts = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length != 2)
-                    {
-                        Console.WriteLine("Потрібно ввести 2 числа (x y). Спробуйте ще раз.");
-                        continue;
-                    }
-                    if (!double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out double x) ||
-                        !double.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out double y))
-                    {
-                        Console.WriteLine("Неможливо розпізнати числа. Використовуйте крапку як десятковий роздільник.");
-                        continue;
-                    }
-                    res[i] = new Point(x, y);
-                    break;
-                }
+                Console.WriteLine($"Enter coordinates for point #{i + 1} (x y) using dot as decimal separator:");
+                double[]? coords = Program.ReadDoublesFromConsole(2, "");
+                if (coords == null) throw new InvalidOperationException("Input ended unexpectedly");
+                res[i] = new Point(coords[0], coords[1]);
             }
             return res;
         }

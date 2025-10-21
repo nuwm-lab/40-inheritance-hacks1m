@@ -3,8 +3,10 @@ using System.Globalization;
 
 namespace LabWork.Geometry
 {
-    public class Triangle : IShape
+    public class Triangle : Shape
     {
+        private const double EPS = 1e-12;
+
         private readonly Point _p1;
         private readonly Point _p2;
         private readonly Point _p3;
@@ -13,19 +15,20 @@ namespace LabWork.Geometry
         {
             _p1 = p1; _p2 = p2; _p3 = p3;
             double area = Area();
-            if (Math.Abs(area) < 1e-12) throw new ArgumentException("Три точки лежать на одній прямій або площа занадто мала.");
+            if (area <= EPS)
+                throw new ArgumentException("Degenerate triangle: points are colinear or area is too small.");
         }
 
-    public void PrintVertices()
+        public override void PrintVertices()
         {
-            Console.WriteLine("Вершини трикутника:");
+            Console.WriteLine("Triangle vertices:");
             Console.WriteLine($"A: {_p1}");
             Console.WriteLine($"B: {_p2}");
             Console.WriteLine($"C: {_p3}");
         }
 
         // Shoelace formula (determinant) for triangle
-    public double Area()
+        public override double Area()
         {
             double x1 = _p1.X, y1 = _p1.Y;
             double x2 = _p2.X, y2 = _p2.Y;
