@@ -1,95 +1,94 @@
 using System;
-using System.Globalization;
-using System.Threading;
-using LabWork.Geometry;
-
-static class Program
+public struct Point
 {
-	// Зчитує рядок з 'count' дійсними числами. Повертає null, якщо введення закінчилось.
-	public static double[]? ReadDoublesFromConsole(int count, string prompt)
-	{
-		if (!string.IsNullOrEmpty(prompt))
-			Console.WriteLine(prompt);
-		while (true)
-		{
-			Console.Write("> ");
-			string? line = Console.ReadLine();
-			if (line == null) return null;
-			// Роздільники: пробіл, табуляція, кома
-			string[] parts = line.Split(new[] { ' ', '\t', ',' }, StringSplitOptions.RemoveEmptyEntries);
-			if (parts.Length != count)
-			{
-				Console.WriteLine($"Потрібно ввести {count} чисел, повторіть введення.");
-				continue;
-			}
-			double[] res = new double[count];
-			bool ok = true;
-			for (int i = 0; i < count; i++)
-			{
-				// Використання InvariantCulture для коректного парсингу чисел з плаваючою комою (крапка як роздільник)
-				if (!double.TryParse(parts[i], System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture, out res[i]))
-				{
-					Console.WriteLine($"Неможливо розпізнати число: '{parts[i]}'. Використовуйте формат з крапкою як роздільник (наприклад 1.5).");
-					ok = false; break;
-				}
-			}
-			if (ok) return res;
-		}
-	}
+    public double X { get; set; }
+    public double Y { get; set; }
+    public override string ToString() => $"({X:F2},{Y:F2})";
+}
 
-	static void PrintHeader()
-	{
-		Console.WriteLine("Виберіть фігуру:");
-		Console.WriteLine("1 - Triangle");
-		Console.WriteLine("2 - ConvexQuadrilateral");
-		Console.WriteLine("0 - Вихід");
-	}
+public class Triangle
+{
+    protected Point A;
+    protected Point B;
+    protected Point C;
 
-	static void Main()
-	{
-		// встановлення культури для коректного введення чисел з плаваючою комою (використовую крапку)
-		Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+    public Triangle(Point a, Point b, Point c)
+    {
+        SetVertices(a, b, c);
+    }
 
-		while (true)
-		{
-			PrintHeader();
-			Console.Write("> ");
-			string? opt = Console.ReadLine();
-			if (opt == null || opt == "0") break;
-			try
-			{
-				if (opt == "1")
-				{
-					// Трикутник: зчитуємо три точки
-					Point.ReadThreePointsFromConsole(out Point p1, out Point p2, out Point p3);
-					var tri = new Triangle(p1, p2, p3);
-					tri.PrintVertices();
-					double area = tri.Area();
-					Console.WriteLine($"Площа трикутника = {area.ToString(CultureInfo.InvariantCulture)}");
-				}
-				else if (opt == "2")
-				{
-					// Чотирикутник: зчитуємо чотири точки
-					Point[] pts = Point.ReadNPointsFromConsole(4);
-					var quad = new ConvexQuadrilateral(pts);
-					quad.PrintVertices();
-					double area = quad.Area();
-					Console.WriteLine($"Площа опуклого чотирикутника = {area.ToString(CultureInfo.InvariantCulture)}");
-				}
-				else
-				{
-					Console.WriteLine("Невідома опція, спробуйте ще раз.");
-				}
-			}
-			catch (ArgumentException ex)
-			{
-				Console.WriteLine($"Помилка введення даних: {ex.Message}");
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Непередбачена помилка: {ex.Message}");
-			}
-			Console.WriteLine();
-		}
-	}
+    public virtual void SetVertices(Point a, Point b, Point c)
+    {
+        A = a;
+        B = b;
+        C = c;
+        Console.WriteLine("\nКоординати {0}(A, B, C) встановлено", this.GetType().Name);
+    }
+
+    public virtual void DisplayVertices()
+    {
+        Console.WriteLine($"Вершина A: {A}");
+        Console.WriteLine($"Вершина B: {B}");
+        Console.WriteLine($"Вершина C: {C}");
+    }
+
+    public virtual double CalculateArea()
+    {
+        return 0.5 * Math.Abs(A.X * (B.Y - C.Y) + B.X * (C.Y - A.Y) + C.X * (A.Y - B.Y));
+    }
+}
+
+public class ConvexQuadrilateral : Triangle
+{
+    protected Point D;
+
+    public ConvexQuadrilateral(Point a, Point b, Point c, Point d) : base(a, b, c)
+    {
+        D = d;
+    }
+
+    public void SetVertices(Point a, Point b, Point c, Point d)
+    {
+        base.SetVertices(a, b, c);
+        D = d;
+        Console.WriteLine("\nКоординати {0}(A, B, C, D) встановлено", this.GetType().Name);
+    }
+
+    public override void DisplayVertices()
+    {
+        base.DisplayVertices();
+        Console.WriteLine($"Вершина D: {D}");
+    }
+
+    public override double CalculateArea()
+    {
+        double areaABC = base.CalculateArea();
+        double areaACD = 0.5 * Math.Abs(A.X * (C.Y - D.Y) + C.X * (D.Y - A.Y) + D.X * (A.Y - C.Y));
+        return areaABC + areaACD;
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Point p1 = new Point { X = 1, Y = 1 };
+        Point p2 = new Point { X = 5, Y = 1 };
+        Point p3 = new Point { X = 3, Y = 4 };
+        Point p4 = new Point { X = 7, Y = 3 };
+
+        Console.WriteLine("___ 1. Робота з трикутником ___");
+        Triangle triangle = new Triangle(p1, p2, p3);
+        triangle.DisplayVertices();
+        double triangleArea = triangle.CalculateArea();
+        Console.WriteLine($"-> Обчислена Площа Трикутника: {triangleArea:F2}\n");
+
+        Console.WriteLine("___ 2. Робота з Опуклим чотирикутником ___");
+        ConvexQuadrilateral quadrilateral = new ConvexQuadrilateral(p1, p2, p3, p4);
+        quadrilateral.DisplayVertices();
+        double quadrilateralArea = quadrilateral.CalculateArea();
+        Console.WriteLine($"-> Обчислена Площа Чотирикутника: {quadrilateralArea:F2}");
+
+        Console.ReadKey();
+    }
 }
